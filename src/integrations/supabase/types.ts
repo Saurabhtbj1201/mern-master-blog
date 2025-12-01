@@ -104,26 +104,68 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          country: string | null
           created_at: string
+          custom_link_label: string | null
+          custom_link_url: string | null
+          facebook_url: string | null
+          gender: string | null
+          github_url: string | null
           id: string
+          instagram_url: string | null
+          last_login: string | null
+          linkedin_url: string | null
+          medium_url: string | null
+          mobile: string | null
+          twitter_url: string | null
           updated_at: string
           username: string
+          website_url: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string
+          custom_link_label?: string | null
+          custom_link_url?: string | null
+          facebook_url?: string | null
+          gender?: string | null
+          github_url?: string | null
           id: string
+          instagram_url?: string | null
+          last_login?: string | null
+          linkedin_url?: string | null
+          medium_url?: string | null
+          mobile?: string | null
+          twitter_url?: string | null
           updated_at?: string
           username: string
+          website_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string
+          custom_link_label?: string | null
+          custom_link_url?: string | null
+          facebook_url?: string | null
+          gender?: string | null
+          github_url?: string | null
           id?: string
+          instagram_url?: string | null
+          last_login?: string | null
+          linkedin_url?: string | null
+          medium_url?: string | null
+          mobile?: string | null
+          twitter_url?: string | null
           updated_at?: string
           username?: string
+          website_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
