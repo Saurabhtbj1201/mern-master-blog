@@ -8,6 +8,7 @@ import { Navbar } from "./components/Navbar";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import SubmitArticle from "./pages/SubmitArticle";
 import EditArticle from "./pages/EditArticle";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/submit-article" element={<SubmitArticle />} />
             <Route path="/edit-article/:id" element={<EditArticle />} />
