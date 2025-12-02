@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
 
 interface ProfileData {
   username: string;
@@ -43,6 +44,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -142,19 +144,16 @@ const Profile = () => {
 
     setUploading(true);
     try {
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
 
-      // Update profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
@@ -223,6 +222,21 @@ const Profile = () => {
     }
   };
 
+  const getSocialLinks = () => {
+    if (!profile) return [];
+    const links = [];
+    if (profile.facebook_url) links.push({ name: "Facebook", url: profile.facebook_url });
+    if (profile.instagram_url) links.push({ name: "Instagram", url: profile.instagram_url });
+    if (profile.youtube_url) links.push({ name: "YouTube", url: profile.youtube_url });
+    if (profile.twitter_url) links.push({ name: "Twitter / X", url: profile.twitter_url });
+    if (profile.linkedin_url) links.push({ name: "LinkedIn", url: profile.linkedin_url });
+    if (profile.website_url) links.push({ name: "Website", url: profile.website_url });
+    if (profile.github_url) links.push({ name: "GitHub", url: profile.github_url });
+    if (profile.medium_url) links.push({ name: "Medium", url: profile.medium_url });
+    if (profile.custom_link_url) links.push({ name: profile.custom_link_label || "Link", url: profile.custom_link_url });
+    return links;
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -233,9 +247,113 @@ const Profile = () => {
 
   if (!profile) return null;
 
+  // Profile View Mode
+  if (!isEditing) {
+    const socialLinks = getSocialLinks();
+    
+    return (
+      <div className="container mx-auto py-8 px-4 max-w-4xl">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Avatar Section */}
+              <div className="flex flex-col items-center">
+                <Avatar className="h-32 w-32">
+                  <AvatarImage src={profile.avatar_url || ""} alt={profile.username} />
+                  <AvatarFallback className="text-3xl">
+                    {profile.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+
+              {/* Info Section */}
+              <div className="flex-1 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h1 className="text-2xl font-bold">{profile.username}</h1>
+                    <p className="text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <Button onClick={() => setIsEditing(true)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                </div>
+
+                {profile.bio && (
+                  <p className="text-muted-foreground">{profile.bio}</p>
+                )}
+
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  {profile.country && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {profile.country}
+                    </span>
+                  )}
+                  {profile.gender && (
+                    <Badge variant="secondary">{profile.gender}</Badge>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Joined {new Date(profile.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                  {profile.last_login && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      Last login {new Date(profile.last_login).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+
+                {/* Social Links */}
+                {socialLinks.length > 0 && (
+                  <div className="pt-4 border-t">
+                    <h3 className="text-sm font-medium mb-2">Links</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {socialLinks.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {link.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Profile Edit Mode
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => setIsEditing(false)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Profile
+        </Button>
+        <h1 className="text-3xl font-bold">Profile Settings</h1>
+      </div>
 
       <Tabs defaultValue="personal" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
