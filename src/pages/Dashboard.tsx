@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -121,7 +121,16 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {(article.status === 'draft' || article.status === 'rejected') && (
+                    {article.status === 'published' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/article/${article.id}`)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {(article.status === 'draft' || article.status === 'rejected' || article.status === 'published') && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -130,7 +139,7 @@ const Dashboard = () => {
                         <Edit className="h-4 w-4" />
                       </Button>
                     )}
-                    {article.status === 'draft' && (
+                    {(article.status === 'draft' || article.status === 'published') && (
                       <Button
                         variant="destructive"
                         size="sm"

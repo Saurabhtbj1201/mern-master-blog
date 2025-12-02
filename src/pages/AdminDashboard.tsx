@@ -49,7 +49,7 @@ const AdminDashboard = () => {
     const { data } = await supabase
       .from('articles')
       .select('*')
-      .in('status', ['pending', 'approved'])
+      .in('status', ['pending', 'approved', 'published'])
       .order('created_at', { ascending: false });
     
     if (data) {
@@ -249,6 +249,7 @@ const AdminDashboard = () => {
 
   const pendingArticles = articles.filter(a => a.status === 'pending');
   const approvedArticles = articles.filter(a => a.status === 'approved');
+  const publishedArticles = articles.filter(a => a.status === 'published');
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8">Loading...</div>;
@@ -262,12 +263,15 @@ const AdminDashboard = () => {
       </div>
 
       <Tabs defaultValue="pending">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="pending">
             Pending Review ({pendingArticles.length})
           </TabsTrigger>
           <TabsTrigger value="approved">
             Approved ({approvedArticles.length})
+          </TabsTrigger>
+          <TabsTrigger value="published">
+            Published ({publishedArticles.length})
           </TabsTrigger>
           <TabsTrigger value="topics">
             Topics ({topics.length})
@@ -375,6 +379,65 @@ const AdminDashboard = () => {
                           onClick={() => handleStatusUpdate(article.id, 'published')}
                         >
                           Publish
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(article.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{article.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="published" className="mt-6">
+          {publishedArticles.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">No published articles</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6">
+              {publishedArticles.map((article) => (
+                <Card key={article.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-2">
+                          <Badge variant="default">Published</Badge>
+                          <span className="text-sm text-muted-foreground">
+                            by {article.profiles?.username || 'Anonymous'}
+                          </span>
+                        </div>
+                        <CardTitle className="font-serif">{article.title}</CardTitle>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {article.views || 0} views
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/article/${article.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleStatusUpdate(article.id, 'draft')}
+                        >
+                          Unpublish
                         </Button>
                         <Button
                           variant="destructive"
