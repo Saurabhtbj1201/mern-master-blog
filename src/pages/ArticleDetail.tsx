@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Eye, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Eye, ArrowLeft } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import AuthorHoverCard from '@/components/AuthorHoverCard';
 
 interface Article {
   id: string;
@@ -15,6 +16,7 @@ interface Article {
   thumbnail_url: string | null;
   views: number;
   published_at: string;
+  author_id: string;
   author_username?: string;
   topic_name?: string;
 }
@@ -56,6 +58,7 @@ const ArticleDetail = () => {
       
       setArticle({
         ...articleData,
+        author_id: articleData.author_id,
         author_username: profile?.username || 'Anonymous',
         topic_name: topic?.name,
       });
@@ -109,62 +112,81 @@ const ArticleDetail = () => {
           Back
         </Button>
 
-        <div className="mx-auto max-w-4xl">
-          {/* Header */}
-          <header className="mb-8">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              {article.topic_name && (
-                <Badge variant="secondary">{article.topic_name}</Badge>
-              )}
-              {tags.map((tag) => (
-                <Badge key={tag.id} variant="outline">
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
-
-            <h1 className="mb-4 font-serif text-4xl font-bold leading-tight md:text-5xl">
-              {article.title}
-            </h1>
-
-            {article.description && (
-              <p className="mb-6 text-xl text-muted-foreground">
-                {article.description}
-              </p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                <span className="font-medium">{article.author_username || 'Anonymous'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                <span>
-                  {formatDistanceToNow(new Date(article.published_at), { addSuffix: true })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                <span>{article.views} views</span>
-              </div>
-            </div>
-          </header>
-
-          {/* Thumbnail */}
+        <div className="flex gap-8">
+          {/* Sidebar with image */}
           {article.thumbnail_url && (
-            <div className="mb-8 aspect-video w-full overflow-hidden rounded-lg">
-              <img
-                src={article.thumbnail_url}
-                alt={article.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            <aside className="hidden lg:block w-80 flex-shrink-0">
+              <div className="sticky top-8">
+                <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
+                  <img
+                    src={article.thumbnail_url}
+                    alt={article.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            </aside>
           )}
 
-          {/* Content */}
-          <div className="prose prose-lg max-w-none dark:prose-invert">
-            <div className="whitespace-pre-wrap">{article.content}</div>
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {/* Header */}
+            <header className="mb-8">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                {article.topic_name && (
+                  <Badge variant="secondary">{article.topic_name}</Badge>
+                )}
+                {tags.map((tag) => (
+                  <Badge key={tag.id} variant="outline">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+
+              <h1 className="mb-4 font-serif text-4xl font-bold leading-tight md:text-5xl">
+                {article.title}
+              </h1>
+
+              {article.description && (
+                <p className="mb-6 text-xl text-muted-foreground">
+                  {article.description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
+                <AuthorHoverCard authorId={article.author_id} authorName={article.author_username || 'Anonymous'}>
+                  <span className="font-medium cursor-pointer hover:text-primary transition-colors">
+                    {article.author_username || 'Anonymous'}
+                  </span>
+                </AuthorHoverCard>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>
+                    {formatDistanceToNow(new Date(article.published_at), { addSuffix: true })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  <span>{article.views} views</span>
+                </div>
+              </div>
+            </header>
+
+            {/* Mobile Thumbnail */}
+            {article.thumbnail_url && (
+              <div className="mb-8 aspect-video w-full overflow-hidden rounded-lg lg:hidden">
+                <img
+                  src={article.thumbnail_url}
+                  alt={article.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Content */}
+            <div className="prose prose-lg max-w-none dark:prose-invert">
+              <div className="whitespace-pre-wrap">{article.content}</div>
+            </div>
           </div>
         </div>
       </div>
