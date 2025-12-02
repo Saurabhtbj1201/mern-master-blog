@@ -5,7 +5,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, User } from "lucide-react";
 
 interface AuthorProfile {
   id: string;
@@ -132,7 +132,9 @@ const AuthorHoverCard = ({ authorId, authorName, children }: AuthorHoverCardProp
             <div className="flex items-start gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={profile.avatar_url || ""} alt={profile.username} />
-                <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {profile.avatar_url ? profile.username.charAt(0).toUpperCase() : <User className="h-6 w-6" />}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold truncate">{profile.username}</h4>
