@@ -111,10 +111,10 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="mb-4 font-serif text-4xl font-bold md:text-5xl">
-              Discover Amazing Stories
+              Welcome to NotePath
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
-              Explore articles from talented writers on topics you love
+              Discover amazing stories from talented writers on topics you love
             </p>
             
             <div className="relative">

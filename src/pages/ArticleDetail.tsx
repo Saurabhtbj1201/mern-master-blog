@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,9 @@ import { Calendar, Eye, ArrowLeft, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthorHoverCard from '@/components/AuthorHoverCard';
+import ArticleAuthorBox from '@/components/ArticleAuthorBox';
+import SuggestedArticles from '@/components/SuggestedArticles';
+import ShareButton from '@/components/ShareButton';
 
 interface Article {
   id: string;
@@ -21,6 +25,7 @@ interface Article {
   author_id: string;
   author_username?: string;
   author_avatar_url?: string | null;
+  topic_id?: string | null;
   topic_name?: string;
 }
 
@@ -76,6 +81,7 @@ const ArticleDetail = () => {
         author_id: articleData.author_id,
         author_username: profile?.username || 'Anonymous',
         author_avatar_url: profile?.avatar_url,
+        topic_id: articleData.topic_id,
         topic_name: topic?.name,
       });
       
@@ -120,32 +126,35 @@ const ArticleDetail = () => {
     );
   }
 
+  const articleUrl = `/article/${article.id}`;
+
   return (
-    <article className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" onClick={() => navigate('/')} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+    <>
+      <Helmet>
+        <title>{article.title} - NotePath</title>
+        <meta name="description" content={article.description || article.title} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.description || article.title} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`${window.location.origin}${articleUrl}`} />
+        {article.thumbnail_url && <meta property="og:image" content={article.thumbnail_url} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:description" content={article.description || article.title} />
+        {article.thumbnail_url && <meta name="twitter:image" content={article.thumbnail_url} />}
+      </Helmet>
 
-        <div className="flex gap-8">
-          {/* Sidebar with image */}
-          {article.thumbnail_url && (
-            <aside className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-8">
-                <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
-                  <img
-                    src={article.thumbnail_url}
-                    alt={article.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </div>
-            </aside>
-          )}
+      <article className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" onClick={() => navigate('/')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <ShareButton title={article.title} url={articleUrl} />
+          </div>
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
+          <div className="mx-auto max-w-4xl">
             {/* Header */}
             <header className="mb-8">
               <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -196,26 +205,21 @@ const ArticleDetail = () => {
               </div>
             </header>
 
-            {/* Mobile Thumbnail */}
-            {article.thumbnail_url && (
-              <div className="mb-8 aspect-video w-full overflow-hidden rounded-lg lg:hidden">
-                <img
-                  src={article.thumbnail_url}
-                  alt={article.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-
             {/* Content */}
             <div 
               className="prose prose-lg max-w-none dark:prose-invert prose-img:rounded-lg prose-img:my-4"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
+
+            {/* Author Box */}
+            <ArticleAuthorBox authorId={article.author_id} />
+
+            {/* Suggested Articles */}
+            <SuggestedArticles currentArticleId={article.id} topicId={article.topic_id} />
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </>
   );
 };
 

@@ -32,7 +32,7 @@ export const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-serif text-xl font-bold text-primary hover:text-primary/80">
             <BookOpen className="h-6 w-6" />
-            <span>Blog Platform</span>
+            <span>NotePath</span>
           </Link>
 
           <div className="flex items-center gap-4">

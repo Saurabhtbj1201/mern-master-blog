@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { z } from 'zod';
+import RichTextEditor from '@/components/RichTextEditor';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const articleSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters').max(200),
@@ -30,6 +32,7 @@ const EditArticle = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loadingArticle, setLoadingArticle] = useState(true);
   
+  const [originalStatus, setOriginalStatus] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -62,6 +65,7 @@ const EditArticle = () => {
       return;
     }
 
+    setOriginalStatus(article.status);
     setFormData({
       title: article.title,
       description: article.description || '',
@@ -293,16 +297,19 @@ const EditArticle = () => {
 
             <div className="space-y-2">
               <Label htmlFor="content">Content *</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Write your article content here..."
-                rows={15}
-                className="font-mono text-sm"
-                required
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => setFormData({ ...formData, content })}
               />
             </div>
+
+            {originalStatus === 'published' && (
+              <Alert>
+                <AlertDescription>
+                  This article is currently published. Submitting for review will unpublish it until approved again.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="flex gap-4">
               <Button
