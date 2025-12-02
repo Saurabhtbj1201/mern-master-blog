@@ -12,7 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
+import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink, Users, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileData {
   username: string;
@@ -41,10 +52,13 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -55,6 +69,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchFollowCounts();
     }
   }, [user]);
 
@@ -75,6 +90,55 @@ const Profile = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFollowCounts = async () => {
+    if (!user) return;
+
+    try {
+      const { count: followers } = await supabase
+        .from("followers")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", user.id);
+
+      const { count: following } = await supabase
+        .from("followers")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", user.id);
+
+      setFollowerCount(followers || 0);
+      setFollowingCount(following || 0);
+    } catch (error) {
+      console.error("Failed to fetch follow counts:", error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setDeleting(true);
+    try {
+      // Delete user's articles first
+      await supabase.from("articles").delete().eq("author_id", user.id);
+
+      // Delete user's followers/following
+      await supabase.from("followers").delete().eq("follower_id", user.id);
+      await supabase.from("followers").delete().eq("following_id", user.id);
+
+      // Delete profile
+      await supabase.from("profiles").delete().eq("id", user.id);
+
+      // Sign out and the auth.users entry will be handled by cascade
+      await supabase.auth.signOut();
+      
+      toast.success("Account deleted successfully");
+      navigate("/");
+    } catch (error: any) {
+      toast.error("Failed to delete account. Please contact support.");
+      console.error(error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -277,6 +341,19 @@ const Profile = () => {
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Profile
                   </Button>
+                </div>
+
+                {/* Follower/Following counts */}
+                <div className="flex gap-6">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-semibold">{followerCount}</span>
+                    <span className="text-muted-foreground">Followers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">{followingCount}</span>
+                    <span className="text-muted-foreground">Following</span>
+                  </div>
                 </div>
 
                 {profile.bio && (
@@ -680,6 +757,52 @@ const Profile = () => {
                     </p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            <Card className="border-destructive">
+              <CardHeader>
+                <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                <CardDescription>Irreversible actions for your account</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Delete Account</p>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account and all associated data
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your
+                          account, all your articles, and remove all your data from our servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={deleting}
+                        >
+                          {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Yes, delete my account
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           </div>
