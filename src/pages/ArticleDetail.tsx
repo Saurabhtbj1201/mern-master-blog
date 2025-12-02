@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,25 +26,37 @@ interface Article {
 
 const ArticleDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [article, setArticle] = useState<Article | null>(null);
   const [tags, setTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdminPreview = searchParams.get('preview') === 'true' && isAdmin;
+
   useEffect(() => {
     if (id) {
       fetchArticle();
-      incrementViews();
+      // Only increment views for published articles (not admin previews)
+      if (!isAdminPreview) {
+        incrementViews();
+      }
     }
-  }, [id]);
+  }, [id, isAdminPreview]);
 
   const fetchArticle = async () => {
-    const { data: articleData, error } = await supabase
+    let query = supabase
       .from('articles')
       .select('*')
-      .eq('id', id)
-      .eq('status', 'published')
-      .single();
+      .eq('id', id);
+    
+    // Only filter by published status if not admin preview
+    if (!isAdminPreview) {
+      query = query.eq('status', 'published');
+    }
+    
+    const { data: articleData, error } = await query.single();
 
     if (!error && articleData) {
       const { data: profile } = await supabase
