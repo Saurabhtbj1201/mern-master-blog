@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink, Users, Trash2 } from "lucide-react";
+import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink, Users, Trash2, User } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import FollowersDialog from "@/components/FollowersDialog";
 
 interface ProfileData {
   username: string;
@@ -325,7 +326,7 @@ const Profile = () => {
                 <Avatar className="h-32 w-32">
                   <AvatarImage src={profile.avatar_url || ""} alt={profile.username} />
                   <AvatarFallback className="text-3xl">
-                    {profile.username.charAt(0).toUpperCase()}
+                    {profile.avatar_url ? profile.username.charAt(0).toUpperCase() : <User className="h-12 w-12" />}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -345,15 +346,19 @@ const Profile = () => {
 
                 {/* Follower/Following counts */}
                 <div className="flex gap-6">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-semibold">{followerCount}</span>
-                    <span className="text-muted-foreground">Followers</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{followingCount}</span>
-                    <span className="text-muted-foreground">Following</span>
-                  </div>
+                  <FollowersDialog userId={user!.id} type="followers" count={followerCount}>
+                    <button className="flex items-center gap-2 hover:text-primary transition-colors">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-semibold">{followerCount}</span>
+                      <span className="text-muted-foreground">Followers</span>
+                    </button>
+                  </FollowersDialog>
+                  <FollowersDialog userId={user!.id} type="following" count={followingCount}>
+                    <button className="flex items-center gap-2 hover:text-primary transition-colors">
+                      <span className="font-semibold">{followingCount}</span>
+                      <span className="text-muted-foreground">Following</span>
+                    </button>
+                  </FollowersDialog>
                 </div>
 
                 {profile.bio && (

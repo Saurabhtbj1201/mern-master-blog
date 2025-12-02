@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { z } from 'zod';
+import RichTextEditor from '@/components/RichTextEditor';
 
 const articleSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters').max(200),
@@ -229,6 +230,7 @@ const SubmitArticle = () => {
 
             <div className="space-y-2">
               <Label htmlFor="thumbnail">Thumbnail Image</Label>
+              <p className="text-sm text-muted-foreground">Recommended ratio: 16:9 (e.g., 1280×720 or 1920×1080)</p>
               <div className="flex items-center gap-4">
                 <Input
                   id="thumbnail"
@@ -250,14 +252,10 @@ const SubmitArticle = () => {
 
             <div className="space-y-2">
               <Label htmlFor="content">Content *</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Write your article content here..."
-                rows={15}
-                className="font-mono text-sm"
-                required
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => setFormData({ ...formData, content })}
+                userId={user?.id}
               />
             </div>
 

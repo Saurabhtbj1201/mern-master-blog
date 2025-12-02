@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Eye, ArrowLeft } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar, Eye, ArrowLeft, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthorHoverCard from '@/components/AuthorHoverCard';
@@ -18,6 +19,7 @@ interface Article {
   published_at: string;
   author_id: string;
   author_username?: string;
+  author_avatar_url?: string | null;
   topic_name?: string;
 }
 
@@ -46,7 +48,7 @@ const ArticleDetail = () => {
     if (!error && articleData) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, avatar_url')
         .eq('id', articleData.author_id)
         .single();
       
@@ -60,6 +62,7 @@ const ArticleDetail = () => {
         ...articleData,
         author_id: articleData.author_id,
         author_username: profile?.username || 'Anonymous',
+        author_avatar_url: profile?.avatar_url,
         topic_name: topic?.name,
       });
       
@@ -155,9 +158,17 @@ const ArticleDetail = () => {
 
               <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
                 <AuthorHoverCard authorId={article.author_id} authorName={article.author_username || 'Anonymous'}>
-                  <span className="font-medium cursor-pointer hover:text-primary transition-colors">
-                    {article.author_username || 'Anonymous'}
-                  </span>
+                  <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={article.author_avatar_url || ""} />
+                      <AvatarFallback>
+                        {article.author_avatar_url ? article.author_username?.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">
+                      {article.author_username || 'Anonymous'}
+                    </span>
+                  </div>
                 </AuthorHoverCard>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -184,9 +195,10 @@ const ArticleDetail = () => {
             )}
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none dark:prose-invert">
-              <div className="whitespace-pre-wrap">{article.content}</div>
-            </div>
+            <div 
+              className="prose prose-lg max-w-none dark:prose-invert prose-img:rounded-lg prose-img:my-4"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
           </div>
         </div>
       </div>
