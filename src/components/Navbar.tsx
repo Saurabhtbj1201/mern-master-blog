@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { BookOpen, LogOut, User, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, LayoutDashboard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import logo from '@/assets/logo.png';
 
 export const Navbar = () => {
   const { user, isAdmin } = useAuth();
@@ -31,7 +32,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-serif text-xl font-bold text-primary hover:text-primary/80">
-            <BookOpen className="h-6 w-6" />
+            <img src={logo} alt="NotePath Logo" className="h-10 w-10" />
             <span>NotePath</span>
           </Link>
 

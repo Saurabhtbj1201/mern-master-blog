@@ -1,13 +1,20 @@
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
+import logo from '@/assets/logo.png';
 
 export const Footer = () => {
+  const { user } = useAuth();
+
   return (
     <footer className="border-t border-border bg-card mt-auto">
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <h3 className="font-serif text-xl font-bold mb-4">NotePath</h3>
+            <Link to="/" className="flex items-center gap-2 mb-4">
+              <img src={logo} alt="NotePath Logo" className="h-10 w-10" />
+              <h3 className="font-serif text-xl font-bold">NotePath</h3>
+            </Link>
             <p className="text-sm text-muted-foreground">
               Discover amazing stories from talented writers on topics you love.
             </p>
@@ -37,16 +44,19 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Account</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/profile" className="text-muted-foreground hover:text-primary transition-colors">
-                  Profile
-                </Link>
-              </li>
-              <li>
-                <Link to="/auth" className="text-muted-foreground hover:text-primary transition-colors">
-                  Sign In / Sign Up
-                </Link>
-              </li>
+              {user ? (
+                <li>
+                  <Link to="/profile" className="text-muted-foreground hover:text-primary transition-colors">
+                    Profile Settings
+                  </Link>
+                </li>
+              ) : (
+                <li>
+                  <Link to="/auth" className="text-muted-foreground hover:text-primary transition-colors">
+                    Sign In / Sign Up
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
           
@@ -67,7 +77,17 @@ export const Footer = () => {
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} NotePath. All rights reserved.</p>
-          <p>Made with ❤️ for writers</p>
+          <p>
+            Made with ❤️ for writers by{' '}
+            <a 
+              href="https://www.gu-saurabh.site" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Saurabh Kumar
+            </a>
+          </p>
         </div>
       </div>
     </footer>
