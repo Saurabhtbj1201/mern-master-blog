@@ -1,10 +1,9 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { LogOut, User, LayoutDashboard, Search } from 'lucide-react';
+import { LogOut, User, LayoutDashboard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,17 +13,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import logo from '@/assets/logo.png';
 
-interface NavbarProps {
-  searchQuery?: string;
-  onSearchChange?: (query: string) => void;
-  showSearch?: boolean;
-}
-
-export const Navbar = ({ searchQuery = '', onSearchChange, showSearch = false }: NavbarProps) => {
+export const Navbar = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -42,21 +33,8 @@ export const Navbar = ({ searchQuery = '', onSearchChange, showSearch = false }:
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-serif text-xl font-bold text-primary hover:text-primary/80">
             <img src={logo} alt="NotePath Logo" className="h-10 w-10" />
-            <span className="hidden sm:inline">NotePath</span>
+            <span>NotePath</span>
           </Link>
-
-          {(isHomePage || showSearch) && onSearchChange && (
-            <div className="relative flex-1 max-w-md mx-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search articles..."
-                className="pl-9 h-9"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-              />
-            </div>
-          )}
 
           <div className="flex items-center gap-4">
             {user ? (
