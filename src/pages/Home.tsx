@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ArticleCard } from '@/components/ArticleCard';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, TrendingUp } from 'lucide-react';
+import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 
 interface Article {
   id: string;
@@ -18,28 +17,50 @@ interface Article {
   topic_name?: string;
 }
 
+const ARTICLES_PER_PAGE = 6;
+
 const Home = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [topics, setTopics] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchTopics();
+    fetchTags();
+  }, []);
+
+  useEffect(() => {
+    setArticles([]);
+    setPage(0);
+    setHasMore(true);
+  }, [searchQuery, selectedTopic, selectedTag]);
 
   useEffect(() => {
     fetchArticles();
-    fetchTopics();
-    fetchTags();
-  }, [searchQuery, selectedTopic, selectedTag]);
+  }, [page, searchQuery, selectedTopic, selectedTag]);
 
   const fetchArticles = async () => {
-    setLoading(true);
+    if (page === 0) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     let query = supabase
       .from('articles')
       .select('*')
       .eq('status', 'published')
-      .order('published_at', { ascending: false });
+      .order('published_at', { ascending: false })
+      .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
@@ -52,7 +73,10 @@ const Home = () => {
     const { data, error } = await query;
 
     if (!error && data) {
-      // Fetch related data
+      if (data.length < ARTICLES_PER_PAGE) {
+        setHasMore(false);
+      }
+
       const articlesWithDetails = await Promise.all(
         data.map(async (article) => {
           const { data: profile } = await supabase
@@ -75,6 +99,8 @@ const Home = () => {
         })
       );
 
+      let filteredArticles = articlesWithDetails;
+
       if (selectedTag) {
         const { data: articleTags } = await supabase
           .from('article_tags')
@@ -82,13 +108,43 @@ const Home = () => {
           .eq('tag_id', selectedTag);
         
         const articleIds = articleTags?.map(at => at.article_id) || [];
-        setArticles(articlesWithDetails.filter(article => articleIds.includes(article.id)));
+        filteredArticles = articlesWithDetails.filter(article => articleIds.includes(article.id));
+      }
+
+      if (page === 0) {
+        setArticles(filteredArticles);
       } else {
-        setArticles(articlesWithDetails);
+        setArticles(prev => [...prev, ...filteredArticles]);
       }
     }
     setLoading(false);
+    setLoadingMore(false);
   };
+
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [target] = entries;
+    if (target.isIntersecting && hasMore && !loading && !loadingMore) {
+      setPage(prev => prev + 1);
+    }
+  }, [hasMore, loading, loadingMore]);
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(handleObserver, {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1,
+    });
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [handleObserver]);
 
   const fetchTopics = async () => {
     const { data } = await supabase.from('topics').select('*').order('name');
@@ -199,22 +255,37 @@ const Home = () => {
                 <p className="text-lg text-muted-foreground">No articles found</p>
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2">
-                {articles.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    id={article.id}
-                    title={article.title}
-                    description={article.description || ''}
-                    thumbnailUrl={article.thumbnail_url || undefined}
-                    authorName={article.author_username || 'Anonymous'}
-                    topicName={article.topic_name}
-                    tags={[]}
-                    views={article.views}
-                    publishedAt={article.published_at}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {articles.map((article) => (
+                    <ArticleCard
+                      key={article.id}
+                      id={article.id}
+                      title={article.title}
+                      description={article.description || ''}
+                      thumbnailUrl={article.thumbnail_url || undefined}
+                      authorName={article.author_username || 'Anonymous'}
+                      topicName={article.topic_name}
+                      tags={[]}
+                      views={article.views}
+                      publishedAt={article.published_at}
+                    />
+                  ))}
+                </div>
+                
+                {/* Load More Trigger */}
+                <div ref={loadMoreRef} className="py-8 flex justify-center">
+                  {loadingMore && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Loading more articles...</span>
+                    </div>
+                  )}
+                  {!hasMore && articles.length > 0 && (
+                    <p className="text-muted-foreground">No more articles to load</p>
+                  )}
+                </div>
+              </>
             )}
           </div>
 

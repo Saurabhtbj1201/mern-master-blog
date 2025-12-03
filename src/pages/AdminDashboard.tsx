@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, X, Edit, Trash2, Eye, Plus, UserPlus } from 'lucide-react';
+import { Check, X, Edit, Trash2, Eye, Plus, UserPlus, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -22,12 +22,15 @@ const AdminDashboard = () => {
   const [topics, setTopics] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
   const [newTopic, setNewTopic] = useState({ name: '', slug: '', description: '' });
   const [newTag, setNewTag] = useState({ name: '', slug: '' });
   const [editingTopic, setEditingTopic] = useState<any>(null);
   const [editingTag, setEditingTag] = useState<any>(null);
   const [isTopicDialogOpen, setIsTopicDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [isAddAdminDialogOpen, setIsAddAdminDialogOpen] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({ username: '', email: '', password: '', confirmPassword: '' });
 
   useEffect(() => {
     if (!loading) {
@@ -41,6 +44,7 @@ const AdminDashboard = () => {
         fetchTopics();
         fetchTags();
         fetchUsers();
+        fetchAdmins();
       }
     }
   }, [user, isAdmin, loading, navigate]);
@@ -122,14 +126,52 @@ const AdminDashboard = () => {
   };
 
   const fetchUsers = async () => {
-    const { data } = await supabase
+    // Fetch all profiles first
+    const { data: profiles } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_roles (role)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
-    if (data) setUsers(data);
+    
+    if (profiles) {
+      // Fetch all user roles
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      // Map roles to users
+      const usersWithRoles = profiles.map(profile => ({
+        ...profile,
+        user_roles: roles?.filter(r => r.user_id === profile.id) || []
+      }));
+      
+      // Filter out admins for users list
+      const nonAdminUsers = usersWithRoles.filter(
+        u => !u.user_roles.some((r: any) => r.role === 'admin')
+      );
+      setUsers(nonAdminUsers);
+    }
+  };
+
+  const fetchAdmins = async () => {
+    // Fetch admin roles
+    const { data: adminRoles } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+    
+    if (adminRoles) {
+      const adminIds = adminRoles.map(r => r.user_id);
+      
+      // Fetch profiles for admins
+      const { data: adminProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', adminIds);
+      
+      if (adminProfiles) {
+        setAdmins(adminProfiles);
+      }
+    }
   };
 
   const handleSaveTopic = async () => {
@@ -244,6 +286,58 @@ const AdminDashboard = () => {
     } else {
       toast.success('User is now an admin');
       fetchUsers();
+      fetchAdmins();
+    }
+  };
+
+  const handleAddAdmin = async () => {
+    if (!newAdmin.username || !newAdmin.email || !newAdmin.password) {
+      toast.error('All fields are required');
+      return;
+    }
+
+    if (newAdmin.password !== newAdmin.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (newAdmin.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email: newAdmin.email,
+      password: newAdmin.password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          username: newAdmin.username
+        }
+      }
+    });
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    if (data.user) {
+      // Add admin role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: data.user.id, role: 'admin' });
+
+      if (roleError) {
+        toast.error('User created but failed to assign admin role');
+      } else {
+        toast.success('Admin created successfully');
+        setIsAddAdminDialogOpen(false);
+        setNewAdmin({ username: '', email: '', password: '', confirmPassword: '' });
+        fetchAdmins();
+      }
     }
   };
 
@@ -281,6 +375,9 @@ const AdminDashboard = () => {
           </TabsTrigger>
           <TabsTrigger value="users">
             Users ({users.length})
+          </TabsTrigger>
+          <TabsTrigger value="admins">
+            Admins ({admins.length})
           </TabsTrigger>
         </TabsList>
 
@@ -652,43 +749,138 @@ const AdminDashboard = () => {
                 <TableRow>
                   <TableHead>Username</TableHead>
                   <TableHead>Bio</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => {
-                  const isUserAdmin = user.user_roles?.some((r: any) => r.role === 'admin');
-                  return (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell className="max-w-xs truncate">{user.bio || '—'}</TableCell>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((userItem) => (
+                    <TableRow key={userItem.id}>
+                      <TableCell className="font-medium">{userItem.username}</TableCell>
+                      <TableCell className="max-w-xs truncate">{userItem.bio || '—'}</TableCell>
                       <TableCell>
-                        {isUserAdmin ? (
-                          <Badge>Admin</Badge>
-                        ) : (
-                          <Badge variant="secondary">User</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(userItem.created_at), { addSuffix: true })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {!isUserAdmin && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleMakeAdmin(user.id)}
-                          >
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Make Admin
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMakeAdmin(userItem.id)}
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Make Admin
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="admins" className="mt-6">
+          <div className="mb-4">
+            <Dialog open={isAddAdminDialogOpen} onOpenChange={setIsAddAdminDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setNewAdmin({ username: '', email: '', password: '', confirmPassword: '' })}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Admin
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Admin</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="admin-username">Username</Label>
+                    <Input
+                      id="admin-username"
+                      value={newAdmin.username}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })}
+                      placeholder="johndoe"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="admin-email">Email</Label>
+                    <Input
+                      id="admin-email"
+                      type="email"
+                      value={newAdmin.email}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                      placeholder="admin@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="admin-password">Password</Label>
+                    <Input
+                      id="admin-password"
+                      type="password"
+                      value={newAdmin.password}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="admin-confirm-password">Confirm Password</Label>
+                    <Input
+                      id="admin-confirm-password"
+                      type="password"
+                      value={newAdmin.confirmPassword}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, confirmPassword: e.target.value })}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <Button onClick={handleAddAdmin} className="w-full">
+                    Create Admin
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Username</TableHead>
+                  <TableHead>Bio</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {admins.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No admins found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  admins.map((admin) => (
+                    <TableRow key={admin.id}>
+                      <TableCell className="font-medium">{admin.username}</TableCell>
+                      <TableCell className="max-w-xs truncate">{admin.bio || '—'}</TableCell>
+                      <TableCell>
+                        <Badge className="gap-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {formatDistanceToNow(new Date(admin.created_at), { addSuffix: true })}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </Card>
