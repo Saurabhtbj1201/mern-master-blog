@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SidebarUsersList } from '@/components/SidebarUsersList';
+import { SidebarSelfProfile } from '@/components/SidebarSelfProfile';
 
 interface Article {
   id: string;
@@ -291,6 +293,9 @@ const Home = () => {
 
           {/* Sidebar */}
           <aside className="space-y-6">
+            {/* Self Profile */}
+            <SidebarSelfProfile />
+
             {/* Trending Articles */}
             <div className="rounded-lg border border-border bg-card p-6">
               <div className="mb-4 flex items-center gap-2">
@@ -321,6 +326,9 @@ const Home = () => {
                 ))}
               </div>
             </div>
+
+            {/* Users to Follow */}
+            <SidebarUsersList />
           </aside>
         </div>
       </div>
