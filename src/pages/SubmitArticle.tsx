@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft, Upload, Plus } from 'lucide-react';
 import { z } from 'zod';
 import RichTextEditor from '@/components/RichTextEditor';
 
@@ -21,13 +22,20 @@ const articleSchema = z.object({
 });
 
 const SubmitArticle = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [topics, setTopics] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  // New topic/tag creation
+  const [newTopicName, setNewTopicName] = useState('');
+  const [newTopicDesc, setNewTopicDesc] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [creatingTopic, setCreatingTopic] = useState(false);
+  const [creatingTag, setCreatingTag] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -53,6 +61,65 @@ const SubmitArticle = () => {
   const fetchTags = async () => {
     const { data } = await supabase.from('tags').select('*').order('name');
     if (data) setTags(data);
+  };
+
+  const handleCreateTopic = async () => {
+    if (!newTopicName.trim()) {
+      toast.error('Topic name is required');
+      return;
+    }
+
+    setCreatingTopic(true);
+    try {
+      const slug = newTopicName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const { data, error } = await supabase
+        .from('topics')
+        .insert({ name: newTopicName.trim(), slug, description: newTopicDesc.trim() || null })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setTopics([...topics, data].sort((a, b) => a.name.localeCompare(b.name)));
+      setFormData({ ...formData, topic_id: data.id });
+      setNewTopicName('');
+      setNewTopicDesc('');
+      toast.success('Topic created successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create topic');
+    } finally {
+      setCreatingTopic(false);
+    }
+  };
+
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) {
+      toast.error('Tag name is required');
+      return;
+    }
+
+    setCreatingTag(true);
+    try {
+      const slug = newTagName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const { data, error } = await supabase
+        .from('tags')
+        .insert({ name: newTagName.trim(), slug })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setTags([...tags, data].sort((a, b) => a.name.localeCompare(b.name)));
+      if (selectedTags.length < 3) {
+        setSelectedTags([...selectedTags, data.id]);
+      }
+      setNewTagName('');
+      toast.success('Tag created successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create tag');
+    } finally {
+      setCreatingTag(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,7 +253,59 @@ const SubmitArticle = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="topic">Topic *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="topic">Topic *</Label>
+                {isAdmin && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="ghost" size="sm">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New Topic
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Topic</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="topicName">Topic Name *</Label>
+                          <Input
+                            id="topicName"
+                            value={newTopicName}
+                            onChange={(e) => setNewTopicName(e.target.value)}
+                            placeholder="e.g., Technology"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="topicDesc">Description (optional)</Label>
+                          <Textarea
+                            id="topicDesc"
+                            value={newTopicDesc}
+                            onChange={(e) => setNewTopicDesc(e.target.value)}
+                            placeholder="Brief description of this topic"
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button 
+                            type="button" 
+                            onClick={handleCreateTopic}
+                            disabled={creatingTopic}
+                          >
+                            {creatingTopic ? 'Creating...' : 'Create Topic'}
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
               <Select
                 value={formData.topic_id}
                 onValueChange={(value) => setFormData({ ...formData, topic_id: value })}
@@ -205,7 +324,49 @@ const SubmitArticle = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Tags (select up to 3)</Label>
+              <div className="flex items-center justify-between">
+                <Label>Tags (select up to 3)</Label>
+                {isAdmin && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="ghost" size="sm">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New Tag
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Tag</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="tagName">Tag Name *</Label>
+                          <Input
+                            id="tagName"
+                            value={newTagName}
+                            onChange={(e) => setNewTagName(e.target.value)}
+                            placeholder="e.g., React"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button 
+                            type="button" 
+                            onClick={handleCreateTag}
+                            disabled={creatingTag}
+                          >
+                            {creatingTag ? 'Creating...' : 'Create Tag'}
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <Button
