@@ -263,6 +263,26 @@ export type Database = {
     Functions: {
       get_follower_count: { Args: { user_id: string }; Returns: number }
       get_following_count: { Args: { user_id: string }; Returns: number }
+      get_public_profile: {
+        Args: { profile_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          custom_link_label: string
+          custom_link_url: string
+          facebook_url: string
+          github_url: string
+          id: string
+          instagram_url: string
+          linkedin_url: string
+          medium_url: string
+          twitter_url: string
+          username: string
+          website_url: string
+          youtube_url: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

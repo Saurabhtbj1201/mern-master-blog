@@ -164,27 +164,38 @@ const SubmitArticle = () => {
 
       const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
+      // First create article as draft to allow thumbnail update
       const { data: article, error: articleError } = await supabase
         .from('articles')
         .insert({
           ...formData,
           slug,
           author_id: user?.id,
-          status,
+          status: 'draft', // Always create as draft first
         })
         .select()
         .single();
 
       if (articleError) throw articleError;
 
+      let thumbnailUrl = null;
       if (imageFile && article) {
-        const thumbnailUrl = await uploadImage(article.id);
+        thumbnailUrl = await uploadImage(article.id);
+      }
+
+      // Now update with final status and thumbnail
+      if (article) {
+        const updateData: any = { status };
         if (thumbnailUrl) {
-          await supabase
-            .from('articles')
-            .update({ thumbnail_url: thumbnailUrl })
-            .eq('id', article.id);
+          updateData.thumbnail_url = thumbnailUrl;
         }
+        
+        const { error: updateError } = await supabase
+          .from('articles')
+          .update(updateData)
+          .eq('id', article.id);
+          
+        if (updateError) throw updateError;
       }
 
       if (selectedTags.length > 0 && article) {
