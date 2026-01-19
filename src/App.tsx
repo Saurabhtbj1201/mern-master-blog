@@ -16,6 +16,7 @@ import SubmitArticle from "./pages/SubmitArticle";
 import EditArticle from "./pages/EditArticle";
 import ArticleDetail from "./pages/ArticleDetail";
 import PublicProfile from "./pages/PublicProfile";
+import Achievements from "./pages/Achievements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                   <Route path="/edit-article/:id" element={<EditArticle />} />
                   <Route path="/article/:id" element={<ArticleDetail />} />
                   <Route path="/profile/:id" element={<PublicProfile />} />
+                  <Route path="/achievements" element={<Achievements />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
