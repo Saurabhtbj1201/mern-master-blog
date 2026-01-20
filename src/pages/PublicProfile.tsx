@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { User, Calendar, ExternalLink, Users, Loader2 } from 'lucide-react';
+import { 
+  User, Calendar, ExternalLink, Users, Loader2, Trophy, Eye, Heart, BookOpen, 
+  Star, Zap, Crown, Medal, Rocket, Globe, Award, TrendingUp, Target
+} from 'lucide-react';
 import FollowersDialog from '@/components/FollowersDialog';
 import { ArticleCard } from '@/components/ArticleCard';
 
@@ -41,6 +45,38 @@ interface Article {
   tags: string[];
 }
 
+interface UserStats {
+  publishedArticles: number;
+  totalViews: number;
+  followerCount: number;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  unlocked: boolean;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+}
+
+const getTierColor = (tier: Achievement['tier']) => {
+  switch (tier) {
+    case 'bronze': return 'bg-amber-700/20 text-amber-700 border-amber-700/30';
+    case 'silver': return 'bg-slate-400/20 text-slate-500 border-slate-400/30';
+    case 'gold': return 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30';
+    case 'platinum': return 'bg-purple-500/20 text-purple-600 border-purple-500/30';
+  }
+};
+
+const getTierBadgeColor = (tier: Achievement['tier']) => {
+  switch (tier) {
+    case 'bronze': return 'bg-amber-700';
+    case 'silver': return 'bg-slate-400';
+    case 'gold': return 'bg-yellow-500';
+    case 'platinum': return 'bg-purple-500';
+  }
+};
+
 const PublicProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -52,17 +88,135 @@ const PublicProfile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchProfile();
       fetchFollowCounts();
       fetchArticles();
+      fetchUserStats();
       if (user) {
         checkFollowStatus();
       }
     }
   }, [id, user]);
+
+  const fetchUserStats = async () => {
+    if (!id) return;
+
+    try {
+      const { data: articles } = await supabase
+        .from('articles')
+        .select('id, status, views')
+        .eq('author_id', id);
+
+      const publishedArticles = articles?.filter(a => a.status === 'published') || [];
+      const totalViews = publishedArticles.reduce((sum, a) => sum + (a.views || 0), 0);
+
+      const { data: followerData } = await supabase
+        .rpc('get_follower_count', { user_id: id });
+
+      setUserStats({
+        publishedArticles: publishedArticles.length,
+        totalViews,
+        followerCount: Number(followerData) || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const getAchievements = (): Achievement[] => {
+    if (!userStats) return [];
+
+    return [
+      {
+        id: 'first-post',
+        title: 'First Steps',
+        icon: <Rocket className="h-4 w-4" />,
+        unlocked: userStats.publishedArticles >= 1,
+        tier: 'bronze',
+      },
+      {
+        id: 'prolific-writer',
+        title: 'Prolific Writer',
+        icon: <BookOpen className="h-4 w-4" />,
+        unlocked: userStats.publishedArticles >= 5,
+        tier: 'silver',
+      },
+      {
+        id: 'content-creator',
+        title: 'Content Creator',
+        icon: <Award className="h-4 w-4" />,
+        unlocked: userStats.publishedArticles >= 10,
+        tier: 'gold',
+      },
+      {
+        id: 'master-blogger',
+        title: 'Master Blogger',
+        icon: <Crown className="h-4 w-4" />,
+        unlocked: userStats.publishedArticles >= 25,
+        tier: 'platinum',
+      },
+      {
+        id: 'getting-noticed',
+        title: 'Getting Noticed',
+        icon: <Eye className="h-4 w-4" />,
+        unlocked: userStats.totalViews >= 100,
+        tier: 'bronze',
+      },
+      {
+        id: 'rising-star',
+        title: 'Rising Star',
+        icon: <Star className="h-4 w-4" />,
+        unlocked: userStats.totalViews >= 500,
+        tier: 'silver',
+      },
+      {
+        id: 'viral-sensation',
+        title: 'Viral Sensation',
+        icon: <Zap className="h-4 w-4" />,
+        unlocked: userStats.totalViews >= 1000,
+        tier: 'gold',
+      },
+      {
+        id: 'internet-famous',
+        title: 'Internet Famous',
+        icon: <Globe className="h-4 w-4" />,
+        unlocked: userStats.totalViews >= 10000,
+        tier: 'platinum',
+      },
+      {
+        id: 'first-follower',
+        title: 'First Follower',
+        icon: <Heart className="h-4 w-4" />,
+        unlocked: userStats.followerCount >= 1,
+        tier: 'bronze',
+      },
+      {
+        id: 'building-community',
+        title: 'Building Community',
+        icon: <TrendingUp className="h-4 w-4" />,
+        unlocked: userStats.followerCount >= 10,
+        tier: 'silver',
+      },
+      {
+        id: 'influencer',
+        title: 'Influencer',
+        icon: <Medal className="h-4 w-4" />,
+        unlocked: userStats.followerCount >= 50,
+        tier: 'gold',
+      },
+      {
+        id: 'thought-leader',
+        title: 'Thought Leader',
+        icon: <Trophy className="h-4 w-4" />,
+        unlocked: userStats.followerCount >= 100,
+        tier: 'platinum',
+      },
+    ];
+  };
 
   const fetchProfile = async () => {
     if (!id) return;
@@ -243,6 +397,8 @@ const PublicProfile = () => {
 
   const socialLinks = getSocialLinks();
   const isOwnProfile = user?.id === id;
+  const achievements = getAchievements();
+  const unlockedAchievements = achievements.filter(a => a.unlocked);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl space-y-8">
@@ -342,6 +498,120 @@ const PublicProfile = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Stats & Achievements Section */}
+      {userStats && (
+        <>
+          {/* Stats Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="text-center">
+              <CardContent className="pt-6">
+                <BookOpen className="h-6 w-6 mx-auto text-primary mb-2" />
+                <div className="text-xl font-bold">{userStats.publishedArticles}</div>
+                <div className="text-sm text-muted-foreground">Published</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="pt-6">
+                <Eye className="h-6 w-6 mx-auto text-primary mb-2" />
+                <div className="text-xl font-bold">{userStats.totalViews.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Total Views</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="pt-6">
+                <Heart className="h-6 w-6 mx-auto text-primary mb-2" />
+                <div className="text-xl font-bold">{followerCount}</div>
+                <div className="text-sm text-muted-foreground">Followers</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="pt-6">
+                <Trophy className="h-6 w-6 mx-auto text-primary mb-2" />
+                <div className="text-xl font-bold">{unlockedAchievements.length}</div>
+                <div className="text-sm text-muted-foreground">Badges</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Unlocked Badges */}
+          {unlockedAchievements.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Award className="h-5 w-5 text-primary" />
+                  Badges & Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-3">
+                  {unlockedAchievements.map((achievement) => (
+                    <div
+                      key={achievement.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${getTierColor(achievement.tier)}`}
+                    >
+                      <div className={`p-1.5 rounded-full ${getTierBadgeColor(achievement.tier)} text-white`}>
+                        {achievement.icon}
+                      </div>
+                      <span className="text-sm font-medium">{achievement.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Milestones */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="h-5 w-5 text-primary" />
+                Milestones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Blogs Published</span>
+                    <span className="text-sm text-muted-foreground">
+                      {userStats.publishedArticles} / {userStats.publishedArticles < 5 ? 5 : userStats.publishedArticles < 10 ? 10 : 25}
+                    </span>
+                  </div>
+                  <Progress value={Math.min((userStats.publishedArticles / (userStats.publishedArticles < 5 ? 5 : userStats.publishedArticles < 10 ? 10 : 25)) * 100, 100)} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Total Views</span>
+                    <span className="text-sm text-muted-foreground">
+                      {userStats.totalViews} / {userStats.totalViews < 100 ? 100 : userStats.totalViews < 500 ? 500 : 1000}
+                    </span>
+                  </div>
+                  <Progress value={Math.min((userStats.totalViews / (userStats.totalViews < 100 ? 100 : userStats.totalViews < 500 ? 500 : 1000)) * 100, 100)} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Followers</span>
+                    <span className="text-sm text-muted-foreground">
+                      {followerCount} / {followerCount < 10 ? 10 : followerCount < 50 ? 50 : 100}
+                    </span>
+                  </div>
+                  <Progress value={Math.min((followerCount / (followerCount < 10 ? 10 : followerCount < 50 ? 50 : 100)) * 100, 100)} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Global Reach</span>
+                    <span className="text-sm text-muted-foreground">
+                      {followerCount + userStats.totalViews} / {(followerCount + userStats.totalViews) < 100 ? 100 : (followerCount + userStats.totalViews) < 500 ? 500 : 1000}
+                    </span>
+                  </div>
+                  <Progress value={Math.min(((followerCount + userStats.totalViews) / ((followerCount + userStats.totalViews) < 100 ? 100 : (followerCount + userStats.totalViews) < 500 ? 500 : 1000)) * 100, 100)} className="h-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* User's Articles */}
       <div>

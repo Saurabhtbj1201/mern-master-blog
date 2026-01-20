@@ -7,6 +7,8 @@ import { Search, TrendingUp, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarUsersList } from '@/components/SidebarUsersList';
 import { SidebarSelfProfile } from '@/components/SidebarSelfProfile';
+import { SuggestedArticlesSidebar } from '@/components/SuggestedArticlesSidebar';
+import { PopularTopicsSidebar } from '@/components/PopularTopicsSidebar';
 
 interface Article {
   id: string;
@@ -326,6 +328,15 @@ const Home = () => {
                 ))}
               </div>
             </div>
+
+            {/* Suggested Articles */}
+            <SuggestedArticlesSidebar />
+
+            {/* Popular Topics */}
+            <PopularTopicsSidebar 
+              onTopicSelect={setSelectedTopic} 
+              selectedTopic={selectedTopic} 
+            />
 
             {/* Users to Follow */}
             <SidebarUsersList />

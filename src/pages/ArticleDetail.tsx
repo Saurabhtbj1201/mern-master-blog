@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -180,7 +180,10 @@ const ArticleDetail = () => {
 
               <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
                 <AuthorHoverCard authorId={article.author_id} authorName={article.author_username || 'Anonymous'}>
-                  <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
+                  <Link 
+                    to={`/profile/${article.author_id}`}
+                    className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={article.author_avatar_url || ""} />
                       <AvatarFallback>
@@ -190,7 +193,7 @@ const ArticleDetail = () => {
                     <span className="font-medium">
                       {article.author_username || 'Anonymous'}
                     </span>
-                  </div>
+                  </Link>
                 </AuthorHoverCard>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
