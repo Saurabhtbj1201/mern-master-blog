@@ -17,6 +17,9 @@ import EditArticle from "./pages/EditArticle";
 import ArticleDetail from "./pages/ArticleDetail";
 import PublicProfile from "./pages/PublicProfile";
 import Achievements from "./pages/Achievements";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +46,9 @@ const App = () => (
                   <Route path="/article/:id" element={<ArticleDetail />} />
                   <Route path="/profile/:id" element={<PublicProfile />} />
                   <Route path="/achievements" element={<Achievements />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

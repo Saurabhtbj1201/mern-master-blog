@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -332,8 +333,14 @@ export default function Achievements() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <>
+      <Helmet>
+        <title>My Achievements - NotePath</title>
+        <meta name="description" content="Track your writing achievements and milestones on NotePath. Earn badges for publishing, views, and engagement." />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3">
@@ -476,5 +483,6 @@ export default function Achievements() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

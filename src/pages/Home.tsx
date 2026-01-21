@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { ArticleCard } from '@/components/ArticleCard';
 import { Input } from '@/components/ui/input';
@@ -165,9 +166,38 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="border-b border-border bg-card py-12">
+    <>
+      <Helmet>
+        <title>NotePath - Discover Amazing Stories & Articles</title>
+        <meta name="description" content="Discover amazing stories from talented writers. Read articles on technology, lifestyle, business, and more on NotePath." />
+        <meta name="keywords" content="NotePath, blog, articles, stories, writing, technology, lifestyle, business" />
+        <link rel="canonical" href="https://notepath-np.lovable.app/" />
+        <meta property="og:title" content="NotePath - Discover Amazing Stories & Articles" />
+        <meta property="og:description" content="Discover amazing stories from talented writers. Read articles on technology, lifestyle, business, and more." />
+        <meta property="og:url" content="https://notepath-np.lovable.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="NotePath" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="NotePath - Discover Amazing Stories & Articles" />
+        <meta name="twitter:description" content="Discover amazing stories from talented writers on NotePath." />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "NotePath",
+            "url": "https://notepath-np.lovable.app",
+            "description": "Discover amazing stories from talented writers",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://notepath-np.lovable.app/?search={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          })}
+        </script>
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        {/* Hero Section */}
+        <section className="border-b border-border bg-card py-12">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="mb-4 font-serif text-4xl font-bold md:text-5xl">
@@ -344,6 +374,7 @@ const Home = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
