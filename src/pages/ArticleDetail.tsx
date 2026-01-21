@@ -133,15 +133,49 @@ const ArticleDetail = () => {
       <Helmet>
         <title>{article.title} - NotePath</title>
         <meta name="description" content={article.description || article.title} />
-        <meta property="og:title" content={article.title} />
+        <meta name="keywords" content={`${article.topic_name || ''}, ${tags.map(t => t.name).join(', ')}, NotePath, blog, article`} />
+        <meta name="author" content={article.author_username || 'NotePath'} />
+        <link rel="canonical" href={`${window.location.origin}${articleUrl}`} />
+        <meta property="og:title" content={`${article.title} - NotePath`} />
         <meta property="og:description" content={article.description || article.title} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`${window.location.origin}${articleUrl}`} />
+        <meta property="og:site_name" content="NotePath" />
+        <meta property="article:published_time" content={article.published_at} />
+        <meta property="article:author" content={article.author_username || 'NotePath'} />
+        {article.topic_name && <meta property="article:section" content={article.topic_name} />}
+        {tags.map(tag => <meta key={tag.id} property="article:tag" content={tag.name} />)}
         {article.thumbnail_url && <meta property="og:image" content={article.thumbnail_url} />}
+        {article.thumbnail_url && <meta property="og:image:alt" content={article.title} />}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:site" content="@NotePath" />
+        <meta name="twitter:title" content={`${article.title} - NotePath`} />
         <meta name="twitter:description" content={article.description || article.title} />
         {article.thumbnail_url && <meta name="twitter:image" content={article.thumbnail_url} />}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": article.title,
+            "description": article.description || article.title,
+            "image": article.thumbnail_url || undefined,
+            "datePublished": article.published_at,
+            "author": {
+              "@type": "Person",
+              "name": article.author_username || "Anonymous",
+              "url": `${window.location.origin}/profile/${article.author_id}`
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "NotePath",
+              "url": window.location.origin
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": `${window.location.origin}${articleUrl}`
+            }
+          })}
+        </script>
       </Helmet>
 
       <article className="min-h-screen bg-background">
