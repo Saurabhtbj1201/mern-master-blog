@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { GlobalSearch } from '@/components/GlobalSearch';
 import logo from '@/assets/logo.png';
 
 export const Navbar = () => {
@@ -35,6 +36,11 @@ export const Navbar = () => {
             <img src={logo} alt="NotePath Logo" className="h-10 w-10" />
             <span>NotePath</span>
           </Link>
+
+          {/* Global Search */}
+          <div className="hidden md:block">
+            <GlobalSearch />
+          </div>
 
           <div className="flex items-center gap-4">
             {user ? (

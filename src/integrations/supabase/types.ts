@@ -258,7 +258,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          custom_link_label: string | null
+          custom_link_url: string | null
+          facebook_url: string | null
+          github_url: string | null
+          id: string | null
+          instagram_url: string | null
+          linkedin_url: string | null
+          medium_url: string | null
+          twitter_url: string | null
+          username: string | null
+          website_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          custom_link_label?: string | null
+          custom_link_url?: string | null
+          facebook_url?: string | null
+          github_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          medium_url?: string | null
+          twitter_url?: string | null
+          username?: string | null
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          custom_link_label?: string | null
+          custom_link_url?: string | null
+          facebook_url?: string | null
+          github_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          medium_url?: string | null
+          twitter_url?: string | null
+          username?: string | null
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_follower_count: { Args: { user_id: string }; Returns: number }
