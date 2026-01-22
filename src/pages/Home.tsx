@@ -197,29 +197,51 @@ const Home = () => {
       </Helmet>
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="border-b border-border bg-card py-12">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-4 font-serif text-4xl font-bold md:text-5xl">
-              Welcome to NotePath
-            </h1>
-            <p className="mb-8 text-lg text-muted-foreground">
-              Discover amazing stories from talented writers on topics you love
-            </p>
-            
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search articles..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-card via-card to-primary/5 py-16 md:py-24">
+          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+          <div className="container relative mx-auto px-4">
+            <div className="mx-auto max-w-4xl text-center">
+              <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-sm font-medium">
+                ✨ Your Journey Through Knowledge Starts Here
+              </Badge>
+              <h1 className="mb-6 font-serif text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
+                Welcome to <span className="text-primary">NotePath</span>
+              </h1>
+              <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
+                Explore insightful articles from passionate writers. Share your knowledge, 
+                discover new perspectives, and connect with a community that values learning.
+              </p>
+              
+              <div className="mx-auto max-w-xl">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search articles by title or description..."
+                    className="h-12 pl-12 text-base shadow-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  <span>Community-driven content</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  <span>Free to read & write</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  <span>Follow your favorite authors</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_300px]">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import DOMPurify from 'dompurify';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -245,7 +246,11 @@ const ArticleDetail = () => {
             {/* Content */}
             <div 
               className="prose prose-lg max-w-none dark:prose-invert prose-img:rounded-lg prose-img:my-4"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content, {
+                ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'mark', 'blockquote', 'pre', 'code', 'ul', 'ol', 'li', 'a', 'img', 'hr', 'span', 'div'],
+                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'style', 'target', 'rel'],
+                ALLOW_DATA_ATTR: false,
+              }) }}
             />
 
             {/* Author Box */}
