@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { CookieConsent } from "./components/CookieConsent";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -54,6 +55,7 @@ const App = () => (
                 </Routes>
               </main>
               <Footer />
+              <CookieConsent />
             </div>
           </BrowserRouter>
         </AuthProvider>
