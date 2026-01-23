@@ -11,6 +11,7 @@ import { SidebarUsersList } from '@/components/SidebarUsersList';
 import { SidebarSelfProfile } from '@/components/SidebarSelfProfile';
 import { SuggestedArticlesSidebar } from '@/components/SuggestedArticlesSidebar';
 import { PopularTopicsSidebar } from '@/components/PopularTopicsSidebar';
+import { RatingBadge } from '@/components/RatingBadge';
 
 interface Article {
   id: string;
@@ -226,6 +227,26 @@ const Home = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
+                </div>
+
+                {/* Rating Badges */}
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+                  <RatingBadge 
+                    title="Best Writing Platform" 
+                    subtitle="2,000+ reviews" 
+                    rating={5} 
+                  />
+                  <RatingBadge 
+                    title="Top Community" 
+                    subtitle="1,500+ members" 
+                    rating={5} 
+                  />
+                  <RatingBadge 
+                    title="Modern Leading" 
+                    subtitle="Award 2024" 
+                    rating={5} 
+                    className="hidden md:flex"
+                  />
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">

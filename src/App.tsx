@@ -1,13 +1,16 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { CookieConsent } from "./components/CookieConsent";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { AuthModal } from "./components/AuthModal";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -25,6 +28,37 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AuthModalWrapper = () => {
+  const { user, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  useEffect(() => {
+    if (loading) return;
+    
+    // Only show modal if user is not logged in
+    if (!user) {
+      const timer = setTimeout(() => {
+        // Check if user has dismissed the modal before
+        const dismissed = sessionStorage.getItem('authModalDismissed');
+        if (!dismissed) {
+          setShowAuthModal(true);
+        }
+      }, 5000); // 5 seconds delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading]);
+
+  const handleOpenChange = (open: boolean) => {
+    setShowAuthModal(open);
+    if (!open) {
+      sessionStorage.setItem('authModalDismissed', 'true');
+    }
+  };
+
+  return <AuthModal open={showAuthModal} onOpenChange={handleOpenChange} />;
+};
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -33,6 +67,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <div className="flex min-h-screen flex-col">
               <Navbar />
               <main className="flex-1">
@@ -56,6 +91,7 @@ const App = () => (
               </main>
               <Footer />
               <CookieConsent />
+              <AuthModalWrapper />
             </div>
           </BrowserRouter>
         </AuthProvider>
