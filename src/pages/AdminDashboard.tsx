@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, X, Edit, Trash2, Eye, Plus, UserPlus, Shield } from 'lucide-react';
+import { Check, X, Edit, Trash2, Eye, Plus, UserPlus, Shield, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AdminNotifications } from '@/components/AdminNotifications';
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -378,6 +379,10 @@ const AdminDashboard = () => {
           </TabsTrigger>
           <TabsTrigger value="admins">
             Admins ({admins.length})
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Send className="mr-1 h-4 w-4" />
+            Notifications
           </TabsTrigger>
         </TabsList>
 
@@ -884,6 +889,10 @@ const AdminDashboard = () => {
               </TableBody>
             </Table>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-6">
+          <AdminNotifications />
         </TabsContent>
       </Tabs>
     </div>
