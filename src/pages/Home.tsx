@@ -12,6 +12,7 @@ import { SidebarSelfProfile } from '@/components/SidebarSelfProfile';
 import { SuggestedArticlesSidebar } from '@/components/SuggestedArticlesSidebar';
 import { PopularTopicsSidebar } from '@/components/PopularTopicsSidebar';
 import { RatingBadge } from '@/components/RatingBadge';
+import { SidebarAd } from '@/components/AdSense';
 
 interface Article {
   id: string;
@@ -417,6 +418,9 @@ const Home = () => {
 
             {/* Users to Follow */}
             <SidebarUsersList />
+
+            {/* Advertisement */}
+            <SidebarAd />
           </aside>
         </div>
       </div>

@@ -14,6 +14,7 @@ import AuthorHoverCard from '@/components/AuthorHoverCard';
 import ArticleAuthorBox from '@/components/ArticleAuthorBox';
 import SuggestedArticles from '@/components/SuggestedArticles';
 import ShareButton from '@/components/ShareButton';
+import { ArticleAd } from '@/components/AdSense';
 
 interface Article {
   id: string;
@@ -252,6 +253,9 @@ const ArticleDetail = () => {
                 ALLOW_DATA_ATTR: false,
               }) }}
             />
+
+            {/* In-Article Advertisement */}
+            <ArticleAd />
 
             {/* Author Box */}
             <ArticleAuthorBox authorId={article.author_id} />

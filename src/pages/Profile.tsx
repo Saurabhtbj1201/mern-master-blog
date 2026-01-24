@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink, Users, Trash2, User } from "lucide-react";
+import { Loader2, Upload, X, Edit, ArrowLeft, MapPin, Calendar, Clock, ExternalLink, Users, Trash2, User, Bell } from "lucide-react";
+import NotificationPreferences from "@/components/NotificationPreferences";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -438,10 +439,14 @@ const Profile = () => {
       </div>
 
       <Tabs defaultValue="personal" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="personal">Personal Info</TabsTrigger>
           <TabsTrigger value="photo">Profile Photo</TabsTrigger>
           <TabsTrigger value="social">Social Links</TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-1">
+            <Bell className="h-4 w-4" />
+            <span className="hidden sm:inline">Notifications</span>
+          </TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
 
@@ -811,6 +816,10 @@ const Profile = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationPreferences />
         </TabsContent>
       </Tabs>
     </div>
